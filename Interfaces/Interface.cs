@@ -25,6 +25,9 @@
 
 namespace RNS
 {
+    /// <summary>
+    /// Initial Interface class
+    /// </summary>
     public class Interface
     {
         public bool IN = false;
@@ -56,6 +59,9 @@ namespace RNS
         public int ifac_size;
         //List<>
 
+        /// <summary>
+        /// Basic initialization
+        /// </summary>
         public Interface()
         {
             rxb = 0;
@@ -68,6 +74,9 @@ namespace RNS
             Callbacks = new CallbackClass();
         }
 
+        /// <summary>
+        /// Arguments for callback event handler
+        /// </summary>
         public class CallbackArgs : EventArgs
         {
             public byte[] Message { get; private set; }
@@ -79,6 +88,9 @@ namespace RNS
             }
         }
 
+        /// <summary>
+        /// Class for callback event handler
+        /// </summary>
         public class CallbackClass
         {
             //public delegate void CallbackEventHandler(object sender, CallbackArgs args);
