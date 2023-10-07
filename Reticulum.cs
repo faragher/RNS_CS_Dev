@@ -199,4 +199,35 @@ namespace RNS
 
 
     }
+
+    public static class Util
+    {
+        public static string PrettyHexRep(byte[] data)
+        {
+            string buffer = "<";
+            foreach(byte b in data)
+            {
+                buffer += b.ToString("X2");
+            }
+            buffer += ">";
+            return buffer;
+        }
+
+        public static byte[] UTF8_to_Bytes(string Input)
+        {
+            return System.Text.Encoding.UTF8.GetBytes(Input);
+        }
+
+        public static byte[] TruncateHash(byte[] data, int length, bool fromEnd = true)
+        {
+            byte[] hash = new byte[length];
+            int index = 0;
+            if (fromEnd)
+            {
+                index = data.Length - length;
+            }
+            Array.Copy(data, index, hash, 0, length);
+            return hash;
+        }
+    }
 }

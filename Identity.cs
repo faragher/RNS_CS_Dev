@@ -35,12 +35,79 @@ namespace RNS
 
         public const int FERNET_OVERHEAD = RNS.Cryptography.Fernet.FERNET_OVERHEAD;
         public const int AES128_BLOCKSIZE = 16;          // In bytes
-        int HASHLENGTH = 256;         // In bits
+        const int HASHLENGTH = 256;         // In bits
         int SIGLENGTH = KEYSIZE;     // In bits
 
-        int NAME_HASH_LENGTH = 80;
-        int TRUNCATED_HASHLENGTH = RNS.Reticulum.TRUNCATED_HASHLENGTH;
+        public const int NAME_HASH_LENGTH = 80;
+        public static int TRUNCATED_HASHLENGTH = RNS.Reticulum.TRUNCATED_HASHLENGTH;
+        public byte[] Hash = new byte[HASHLENGTH / 8];
 
-        //known_destinations = {} //toDo FixMe
+        List<Destination> known_destinations = new List<Destination>();
+
+        Identity(bool create_keys = false)
+        {
+           string prv = "";
+            byte[] prv_bytes = null;
+            string sig_prv = "";
+            byte[] sig_prv_bytes = null;
+
+            string pub = "";
+            byte[] pub_bytes = null;
+            string sig_pub = "";
+            byte[] sig_pub_bytes = null;
+
+            //Hash = null;
+            //HexHash = null;
+
+            if (create_keys)
+            {
+                //Create_Keys();
+            }
+        }
+
+        public string PrettyName
+        {
+            get { return RNS.Util.PrettyHexRep(Hash); }
+        }
+
+        public static byte[] FullHash(byte[] data)
+        {
+            // Functional, but placing under RNS.Crypto for generalization
+            // return System.Security.Cryptography.SHA256.HashData(data);
+
+            return RNS.Cryptography.SHA256(data);
+        }
+
+        public static byte[] Truncated_Hash(byte[] data)
+        {
+            byte[] hash = new byte[TRUNCATED_HASHLENGTH/8];
+            byte[] fullhash = FullHash(data);
+            Array.Copy(fullhash, fullhash.Length-(TRUNCATED_HASHLENGTH/8), hash, 0, TRUNCATED_HASHLENGTH/8);
+            return hash;
+
+        }
+
+        public static byte[] Get_Random_Hash()
+        {
+
+            System.Security.Cryptography.RandomNumberGenerator random = System.Security.Cryptography.RandomNumberGenerator.Create();
+            byte[] hashseed = new byte[TRUNCATED_HASHLENGTH/8];
+            random.GetBytes(hashseed);
+            return Truncated_Hash(hashseed);
+
+        }
+
+        public static void Persist_Data()
+        {
+            //if (!RNS.Transport.owner.isConnectedToSharedInstance)
+            //{
+            //    Save_Known_Destinations();
+            //}
+        }
+
+        public static void Exit_Handler()
+        {
+            Persist_Data();
+        }
     }
 }

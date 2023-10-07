@@ -61,7 +61,7 @@ byte[] sideband_fb_data = new byte[] {
 };
 
 //Modify the COM port and broadcast specifications as required
-RNode.RNodeInterface R = new RNode.RNodeInterface(new RNS.Transport(), "RNS Test Node", "COM6",915000000,125000,2,8,5,false);
+RNS.Interfaces.RNodeInterface R = new RNS.Interfaces.RNodeInterface(new RNS.Transport(), "RNS Test Node", "COM10",915000000,125000,2,8,5,false);
 
 void TestCallback(object sender, RNS.Interface.CallbackArgs e)
 {
@@ -72,6 +72,79 @@ void TestCallback(object sender, RNS.Interface.CallbackArgs e)
     }
     Console.WriteLine();
 }
+
+//More test stuff
+byte[] FakeHash = new byte[] { 0x3c, 0x12, 0xdb, 0xa8, 0x95, 0xc1, 0x8f, 0xe8, 0x99, 0x7e, 0xbb, 0x55, 0x6d, 0xe9, 0xd9, 0x51 };
+//Console.WriteLine(RNS.Util.PrettyHexRep(FakeHash));
+//FakeHash = RNS.Destination.Hash(null, "NotMyProblem", new List<string>() { "Fish"});
+FakeHash = RNS.Identity.FullHash(new byte[] { 0xde, 0xad, 0xbe, 0xef });
+Console.WriteLine("Deadbeef full hash: " + RNS.Util.PrettyHexRep(FakeHash));
+Console.WriteLine("Expected:           <5F78C33274E43FA9DE5659265C1D917E25C03722DCB0B8D27DB8D5FEAA813953>");
+FakeHash = RNS.Identity.Truncated_Hash(new byte[] { 0xde, 0xad, 0xbe, 0xef });
+Console.WriteLine("Deadbeef truncated hash:                            " + RNS.Util.PrettyHexRep(FakeHash));
+Console.WriteLine("Expected:                                           <25C03722DCB0B8D27DB8D5FEAA813953>");
+Console.WriteLine("Random Hash: "+RNS.Util.PrettyHexRep(RNS.Identity.Get_Random_Hash()));
+Console.WriteLine("Random Hash: " + RNS.Util.PrettyHexRep(RNS.Identity.Get_Random_Hash()));
+Console.WriteLine("Random Hash: " + RNS.Util.PrettyHexRep(RNS.Identity.Get_Random_Hash()));
+//RNS.Cryptography.TestMe();
+byte[] TestBytes = System.Text.Encoding.ASCII.GetBytes("This is my test string. If it displays properly, this crypto check has passed.");
+byte[] TestKey = new byte[] { 0xde, 0xad, 0xbe, 0xef, 0xde, 0xad, 0xbe, 0xef, 0xde, 0xad, 0xbe, 0xef, 0xde, 0xad, 0xbe, 0xef };
+byte[] TestIV = new byte[] { 0xde, 0xad, 0xbe, 0xef, 0xde, 0xad, 0xbe, 0xef, 0xde, 0xad, 0xbe, 0xef, 0xde, 0xad, 0xbe, 0xef };
+Console.WriteLine("IV Length: " + TestIV.Length.ToString());
+byte[] TestReturn = RNS.Cryptography.AES_128_CBC.encrypt(TestBytes,TestKey,TestIV);
+TestReturn = RNS.Cryptography.AES_128_CBC.decrypt(TestReturn, TestKey, TestIV);
+Console.WriteLine("AES Test:");
+Console.WriteLine(System.Text.Encoding.ASCII.GetString(TestReturn));
+Console.WriteLine("Signature Test:");
+RNS.Cryptography.Ed25519PrivateKey SK = new RNS.Cryptography.Ed25519PrivateKey();
+RNS.Cryptography.Ed25519PublicKey VK = new RNS.Cryptography.Ed25519PublicKey(SK.public_key());
+TestReturn = SK.sign(TestBytes);
+
+if (VK.verify(TestReturn, TestBytes))
+{
+    Console.WriteLine("Ed25519 signature valid");
+
+}
+else
+{
+
+    Console.WriteLine("Ed25519 signature invalid");
+       
+}
+
+//rfc4231 test vectors
+byte[] MACKey = new byte[] { 0x4a, 0x65, 0x66, 0x65 };
+//byte[] MACData = new byte[] { 0x48, 0x69, 0x20, 0x54, 0x68, 0x65, 0x72, 0x65 };
+
+byte[] MACData = new byte[] { 0x77, 0x68, 0x61, 0x74, 0x20, 0x64, 0x6f, 0x20, 0x79, 0x61, 0x20, 0x77, 0x61, 0x6e, 0x74, 0x20, 0x66, 0x6f, 0x72, 0x20, 0x6e, 0x6f, 0x74, 0x68, 0x69, 0x6e, 0x67, 0x3f };
+
+string ExpectedMAC256 = "5bdcc146bf60754e6a042426089575c75a003f089d2739839dec58b964ec3843";
+string ExpectedMAC512 = "164b7a7bfcf819e2e395fbe73b56e0a387bd64222e831fd610270cd7ea2505549758bf75c05a994a6d034f65f8f0e6fdcaeab1a34d4a6b4b636e070a38bce737";
+
+Console.WriteLine(System.Text.ASCIIEncoding.ASCII.GetString(MACData));
+
+byte[] MAC = RNS.Cryptography.HMAC256(MACKey, MACData);
+Console.WriteLine("Testing HMAC - SHA256");
+Console.Write("          ");
+foreach(byte b in MAC)
+{
+    Console.Write(b.ToString("X2"));
+}
+Console.WriteLine("");
+Console.WriteLine("Expected: " + ExpectedMAC256);
+
+MAC = RNS.Cryptography.HMAC512(MACKey, MACData);
+Console.WriteLine("Testing HMAC - SHA512");
+Console.Write("          ");
+foreach (byte b in MAC)
+{
+    Console.Write(b.ToString("X2"));
+}
+Console.WriteLine("");
+Console.WriteLine("Expected: " + ExpectedMAC512);
+
+//end test
+
 
 R.Callbacks.CallbackEventHandler += TestCallback;
 
